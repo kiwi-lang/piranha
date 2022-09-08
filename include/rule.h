@@ -26,7 +26,10 @@ namespace piranha {
         }
 
         virtual NodeBase *buildNode(NodeAllocator *nodeAllocator) const = 0;
-        void destroy(NodeAllocator *nodeAllocator) { nodeAllocator->free(m_reference); }
+        void destroy(NodeAllocator *nodeAllocator) { 
+            nodeAllocator->free(m_reference); 
+            m_reference = nullptr;
+        }
 
         void setValue(const ValueType &value) { m_value = value; }
         const ValueType &getValue() const { return m_value; }

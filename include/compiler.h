@@ -7,19 +7,23 @@
 #include <vector>
 #include <string>
 
-namespace piranha {
+namespace piranha
+{
 
     class IrCompilationUnit;
     class LanguageRules;
 
     typedef Path IrPath;
 
-    class Compiler {
+    class Compiler
+    {
     public:
         Compiler(const LanguageRules *rules = nullptr);
         ~Compiler();
 
         IrCompilationUnit *compile(const IrPath &scriptPath);
+        IrCompilationUnit *compile_script(const char *InlineScript);
+
         void free();
         IrCompilationUnit *getUnit(const IrPath &scriptPath) const;
 
@@ -37,6 +41,8 @@ namespace piranha {
 
     protected:
         IrCompilationUnit *analyze(const IrPath &scriptPath);
+        IrCompilationUnit *analyze_script(const char *InlineScript);
+
         bool isPathEquivalent(const IrPath &a, const IrPath &b) const;
 
         static bool hasEnding(std::string const &fullString, std::string const &ending);

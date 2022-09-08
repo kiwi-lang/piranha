@@ -10,7 +10,6 @@ set(CMAKE_CXX_STANDARD 17)
 
 # =========================================================
 # GTEST
-
 include(FetchContent)
 FetchContent_Declare(
     googletest
@@ -27,7 +26,6 @@ set_property(TARGET gtest_main PROPERTY FOLDER "gtest")
 
 # =========================================================
 # FLEX BISON
-
 find_package(FLEX REQUIRED)
 find_package(BISON REQUIRED)
 
@@ -48,12 +46,8 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(dependencies/libraries/flex/include)
 include_directories(include)
 
-set(Boost_USE_STATIC_LIBS ON)
-set(Boost_USE_MULTITHREADED ON)
-set(Boost_USE_STATIC_RUNTIME OFF)
-find_package(Boost 1.40 COMPONENTS filesystem REQUIRED)
-
 add_library(piranha STATIC
+
     # Source files
     src/assembly.cpp
     src/channel_node.cpp
@@ -169,6 +163,7 @@ add_library(piranha STATIC
 target_link_libraries(piranha Boost::filesystem)
 
 add_executable(piranha_reference_compiler
+
     # Source files
     demos/main.cpp
     demos/reference_language_rules.cpp
@@ -182,7 +177,6 @@ add_executable(piranha_reference_compiler
 target_link_libraries(piranha_reference_compiler piranha)
 
 # gtest
-
 enable_testing()
 
 add_executable(piranha_test
@@ -204,4 +198,3 @@ target_link_libraries(piranha_test
 
 include(GoogleTest)
 gtest_discover_tests(piranha_test)
-

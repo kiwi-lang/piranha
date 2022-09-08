@@ -69,7 +69,7 @@ std::string piranha::Path::getExtension() const {
 }
 
 std::string piranha::Path::getStem() const {
-    return m_path->stem().string();
+    return m_path ? m_path->stem().string(): "<inline>";
 }
 
 bool piranha::Path::isAbsolute() const {
@@ -77,5 +77,5 @@ bool piranha::Path::isAbsolute() const {
 }
 
 bool piranha::Path::exists() const {
-    return boost::filesystem::exists(*m_path);
+    return m_path && boost::filesystem::exists(*m_path);
 }
