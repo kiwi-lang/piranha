@@ -81,7 +81,7 @@ namespace piranha {
         virtual void _checkInstantiation();
         virtual void _checkTypes();
 
-    private:
+    public:
         ParseResult parseHelper(std::istream &stream, IrCompilationUnit *topLevel = nullptr);
 
         Parser *m_parser = nullptr;

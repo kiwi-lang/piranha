@@ -43,6 +43,9 @@ void piranha::Path::setPath(const std::string &path) {
 }
 
 bool piranha::Path::operator==(const Path &path) const {
+    if (m_path == nullptr) {
+        return false;
+    }
     return boost::filesystem::equivalent(this->getBoostPath(), path.getBoostPath());
 }
 

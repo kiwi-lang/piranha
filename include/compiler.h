@@ -20,6 +20,13 @@ namespace piranha {
         ~Compiler();
 
         IrCompilationUnit *compile(const IrPath &scriptPath);
+
+#ifdef PIRANHA_INLINE_SCRIPT
+        IrCompilationUnit *compile_script(std::string const &script, const IrPath &root);
+        IrCompilationUnit *analyze_script(std::string const &script, const IrPath &root);
+        void analyze_internal(piranha::IrCompilationUnit *newUnit, const IrPath &root) ;
+#endif
+
         void free();
         IrCompilationUnit *getUnit(const IrPath &scriptPath) const;
 
@@ -37,6 +44,8 @@ namespace piranha {
 
     protected:
         IrCompilationUnit *analyze(const IrPath &scriptPath);
+        
+
         bool isPathEquivalent(const IrPath &a, const IrPath &b) const;
 
         static bool hasEnding(std::string const &fullString, std::string const &ending);

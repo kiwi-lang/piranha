@@ -17,8 +17,6 @@ piranha::Compiler::~Compiler() {
 
 piranha::IrCompilationUnit *piranha::Compiler::analyze(const IrPath &scriptPath) {
     IrCompilationUnit *newUnit = getUnit(scriptPath);
-    Path rootDir;
-    scriptPath.getParentPath(&rootDir);
 
     if (newUnit == nullptr) {
         newUnit = TRACK(new IrCompilationUnit());
@@ -30,6 +28,12 @@ piranha::IrCompilationUnit *piranha::Compiler::analyze(const IrPath &scriptPath)
             return nullptr;
         }
 
+        Path rootDir;
+        scriptPath.getParentPath(&rootDir);
+
+#ifdef PIRANHA_INLINE_SCRIPT
+        analyze_internal(newUnit, rootDir);
+#else
         newUnit->setRules(m_rules);
         m_units.push_back(newUnit);
 
@@ -66,8 +70,11 @@ piranha::IrCompilationUnit *piranha::Compiler::analyze(const IrPath &scriptPath)
                 newUnit->addCompilationError(TRACK(new CompilationError(*s->getSummaryToken(),
                     ErrorCode::FileOpenFailed)));
             }
-            else newUnit->addDependency(importUnit);
+            else {
+                newUnit->addDependency(importUnit);
+            }
         }
+#endif
     }
 
     return newUnit;
@@ -165,3 +172,80 @@ void piranha::Compiler::validate() {
         unit->validateAll();
     }
 }
+
+
+#ifdef PIRANHA_INLINE_SCRIPT
+
+piranha::IrCompilationUnit *piranha::Compiler::compile_script(std::string const &script, const IrPath &root) {
+    IrCompilationUnit *topLevel = analyze_script(script, root);
+
+    // Resolution step
+    resolve();
+
+    // Validation step
+    validate();
+
+    return topLevel; 
+}
+
+piranha::IrCompilationUnit *piranha::Compiler::analyze_script(const std::string &script, const IrPath &root) {
+    IrCompilationUnit *newUnit = newUnit = TRACK(new IrCompilationUnit());
+
+    newUnit->setErrorList(&m_errorList);
+    IrCompilationUnit::ParseResult parseResult = newUnit->parse(script.c_str());
+
+    if (parseResult == IrCompilationUnit::ParseResult::IoError) {
+        delete TRACK(newUnit);
+        return nullptr;
+    }
+
+    analyze_internal(newUnit, root);
+
+    return newUnit;
+}
+
+
+void piranha::Compiler::analyze_internal(piranha::IrCompilationUnit *newUnit, const IrPath &rootDir) {
+    newUnit->setRules(m_rules);
+    m_units.push_back(newUnit);
+
+    const int importCount = newUnit->getImportStatementCount();
+    for (int i = 0; i < importCount; i++) {
+        IrImportStatement *s = newUnit->getImportStatement(i);
+        std::string libName = s->getLibName();
+
+        if (!hasEnding(libName, m_extension)) {
+            libName += m_extension;
+        }
+
+        Path importPath(libName);
+        Path fullImportPath = importPath.isAbsolute() 
+            ? importPath // TODO: Warn about use of absolute path
+            : rootDir.append(importPath);
+
+        if (!fullImportPath.exists()) {
+            Path resolvedPath;
+            bool fileFound = resolvePath(importPath, &resolvedPath);
+
+            if (!fileFound) {
+                newUnit->addCompilationError(TRACK(new CompilationError(*s->getSummaryToken(),
+                    ErrorCode::FileOpenFailed)));
+                continue;
+            }
+            else fullImportPath = resolvedPath;
+        }
+
+        // Recursively build
+        IrCompilationUnit *importUnit = analyze(fullImportPath);
+        s->setUnit(importUnit);
+        if (importUnit == nullptr) {
+            newUnit->addCompilationError(TRACK(new CompilationError(*s->getSummaryToken(),
+                ErrorCode::FileOpenFailed)));
+        }
+        else {
+            newUnit->addDependency(importUnit);
+        }
+    }
+}
+
+#endif
