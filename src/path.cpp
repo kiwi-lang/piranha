@@ -72,7 +72,10 @@ std::string piranha::Path::getExtension() const {
 }
 
 std::string piranha::Path::getStem() const {
-    return m_path->stem().string();
+    if (m_path) {
+        return m_path->stem().string();
+    }
+    return "<none>";
 }
 
 bool piranha::Path::isAbsolute() const {
